@@ -1,5 +1,4 @@
 streamlit
-replicate==1.0.7
-pydantic==2.10.6
+replicate
 openai
 edge-tts
