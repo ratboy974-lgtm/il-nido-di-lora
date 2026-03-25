@@ -39,21 +39,22 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Versione definitiva senza filtri con ID aggiornato"""
+    """Versione TOTALE LIBERTÀ: Modello fofr senza filtri"""
+    # Il tuo LoRA di Civitai
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Puntiamo alla versione specifica che accetta 'disable_safety_checker'
+    # Usiamo fofr/flux-dev-lora (noto per essere 'unfiltered')
     output = replicate.run(
-        "lucataco/flux-dev-lora:a573216896582a176690460c386687002061093c3cd978bc7046200234479e0a",
+        "fofr/flux-dev-lora:ae352d1d079173004f7a63753ca11986420551528659187310d54a2a1b9e2c6a",
         input={
-            "prompt": f"RAW photo, {prompt_utente}, Lora woman, 25 years old, mediterranean, black hair, highly detailed skin, 8k",
+            "prompt": f"RAW photo, {prompt_utente}, Lora woman, black hair, highly detailed skin, 8k, photorealistic",
             "lora_url": LORA_URL,
             "lora_scale": 0.85,
             "aspect_ratio": "9:16",
             "guidance_scale": 3.5,
             "num_inference_steps": 28,
             "output_format": "jpg",
-            "disable_safety_checker": True
+            "disable_safety_checker": True # <--- Qui non è un'opzione, è un ordine!
         }
     )
     return str(output[0]) if isinstance(output, list) else str(output)
