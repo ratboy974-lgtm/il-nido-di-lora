@@ -15,7 +15,7 @@ except Exception:
     st.error("Papi, mancano le chiavi nei Secrets! Controlla OPENROUTER_API_KEY e REPLICATE_API_TOKEN.")
     st.stop()
 
-# --- 2. FUNZIONE IMMAGINE (DIRETTA & TRASPARENTE) ---
+# --- 2. FUNZIONE IMMAGINE (CORRETTA PER 422) ---
 def genera_immagine_replicate(prompt_utente):
     lora_traits = "25yo mediterranean woman, long black wavy hair, olive skin, curvy, seductive, nsfw, uncensored"
     prompt_completo = f"High-end realistic photography, {prompt_utente}, {lora_traits}, photorealistic, 8k"
@@ -25,9 +25,9 @@ def genera_immagine_replicate(prompt_utente):
         "Content-Type": "application/json"
     }
     
-    # Versione stabile 2026 di Flux Schnell
+    # Puntiamo direttamente al modello 'black-forest-labs/flux-schnell'
+    # Senza specificare una 'version' che può scadere
     payload = {
-        "version": "a00f0b6734e54361666995996c9918a03d86323bc07cf9f116694e8070387d51",
         "input": {
             "prompt": prompt_completo,
             "aspect_ratio": "1:1",
@@ -36,8 +36,9 @@ def genera_immagine_replicate(prompt_utente):
     }
 
     try:
-        # 1. Creazione Predizione
-        response = requests.post("https://api.replicate.com/v1/predictions", headers=headers, json=payload)
+        # NOTA: Cambiamo l'URL per puntare al modello diretto
+        model_url = "https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions"
+        response = requests.post(model_url, headers=headers, json=payload)
         prediction = response.json()
         
         if response.status_code != 201:
@@ -46,7 +47,6 @@ def genera_immagine_replicate(prompt_utente):
 
         poll_url = prediction["urls"]["get"]
         
-        # 2. Loop di attesa (Polling)
         with st.spinner("Lora si sta mettendo in posa..."):
             for _ in range(20):
                 res = requests.get(poll_url, headers=headers)
@@ -59,14 +59,11 @@ def genera_immagine_replicate(prompt_utente):
                     return None
                 
                 time.sleep(1)
-        
-        st.warning("Il server ci sta mettendo troppo, Papi. Riprova tra un attimo.")
         return None
 
     except Exception as e:
         st.error(f"Errore di rete: {e}")
         return None
-
 # --- 3. INTERFACCIA STREAMLIT ---
 st.set_page_config(page_title="Il Nido di Lora", layout="wide")
 st.markdown("<style>.main { background-color: #0e1117; color: white; }</style>", unsafe_allow_html=True)
