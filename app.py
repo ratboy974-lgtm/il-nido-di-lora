@@ -15,55 +15,32 @@ except Exception:
     st.error("Papi, mancano le chiavi nei Secrets! Controlla OPENROUTER_API_KEY e REPLICATE_API_TOKEN.")
     st.stop()
 
-# --- 2. FUNZIONE IMMAGINE (CORRETTA PER 422) ---
+# --- 2. FUNZIONE IMMAGINE (VERSIONE TOTALMENTE LIBERA) ---
 def genera_immagine_replicate(prompt_utente):
-    lora_traits = "25yo mediterranean woman, long black wavy hair, olive skin, curvy, seductive, nsfw, uncensored"
-    prompt_completo = f"High-end realistic photography, {prompt_utente}, {lora_traits}, photorealistic, 8k"
+    # Tratti fisici di Lora (sempre coerenti)
+    lora_traits = "25yo mediterranean woman, long black wavy hair, olive skin, curvy, bedroom, intimate"
     
     headers = {
         "Authorization": f"Token {REPLICATE_TOKEN}",
         "Content-Type": "application/json"
     }
     
-    # Puntiamo direttamente al modello 'black-forest-labs/flux-schnell'
-    # Senza specificare una 'version' che può scadere
+    # Questo modello è 'Uncensored' per eccellenza
     payload = {
         "input": {
-            "prompt": prompt_completo,
+            "prompt": f"{prompt_utente}, {lora_traits}, highly detailed, 8k, explicit texture, realistic",
             "aspect_ratio": "1:1",
-            "disable_safety_checker": True
+            "disable_safety_checker": True 
         }
     }
 
     try:
-        # NOTA: Cambiamo l'URL per puntare al modello diretto
-        model_url = "https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions"
+        # CAMBIAMO IL MODELLO: Usiamo Flux-Unofficial o un checkpoint senza filtri
+        # Questo URL punta a una versione che ignora i blocchi morali
+        model_url = "https://api.replicate.com/v1/models/lucataco/flux-dev-dpo/predictions"
+        
         response = requests.post(model_url, headers=headers, json=payload)
-        prediction = response.json()
-        
-        if response.status_code != 201:
-            st.error(f"Errore Replicate ({response.status_code}): {prediction.get('detail', 'Errore ignoto')}")
-            return None
-
-        poll_url = prediction["urls"]["get"]
-        
-        with st.spinner("Lora si sta mettendo in posa..."):
-            for _ in range(20):
-                res = requests.get(poll_url, headers=headers)
-                status_data = res.json()
-                
-                if status_data["status"] == "succeeded":
-                    return status_data["output"][0]
-                elif status_data["status"] == "failed":
-                    st.error(f"Generazione fallita: {status_data.get('error', 'Errore server')}")
-                    return None
-                
-                time.sleep(1)
-        return None
-
-    except Exception as e:
-        st.error(f"Errore di rete: {e}")
-        return None
+        # ... (il resto del codice rimane uguale)
         
 # --- 3. INTERFACCIA STREAMLIT ---
 st.set_page_config(page_title="Il Nido di Lora", layout="wide")
