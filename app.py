@@ -11,12 +11,12 @@ try:
     )
     REPLICATE_TOKEN = st.secrets["REPLICATE_API_TOKEN"]
 except Exception:
-    st.error("Papi, mancano le chiavi nei Secrets!")
+    st.error("Papi, mancano le chiavi API nei Secrets!")
     st.stop()
 
-# --- 2. FUNZIONE IMMAGINE (FLUX SCHNELL - DIRETTO) ---
+# --- 2. FUNZIONE IMMAGINE (FLUX SCHNELL - NO CENSURA) ---
 def genera_immagine_replicate(prompt_utente):
-    # Tratti fisici di Lora (Coerenza Visiva)
+    # Tratti fisici di Lora per coerenza
     lora_traits = "25yo mediterranean woman, long wavy black hair, olive skin, curvy, seductive, 8k, photorealistic"
     
     headers = {
@@ -24,16 +24,17 @@ def genera_immagine_replicate(prompt_utente):
         "Content-Type": "application/json"
     }
     
+    # Puntiamo al modello stabile ma forziamo il NO-SAFETY
     payload = {
         "input": {
-            "prompt": f"Intimate bedroom photo, {prompt_utente}, {lora_traits}, masterpiece, soft lighting",
+            "prompt": f"Intimate photo, {prompt_utente}, {lora_traits}, highly detailed, raw photo",
             "aspect_ratio": "1:1",
-            "disable_safety_checker": True
+            "disable_safety_checker": True, # DISATTIVA CENSURA
+            "output_format": "jpg"
         }
     }
 
     try:
-        # Usiamo l'endpoint del modello stabile per evitare il 422/404
         model_url = "https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions"
         response = requests.post(model_url, headers=headers, json=payload)
         prediction = response.json()
@@ -43,6 +44,7 @@ def genera_immagine_replicate(prompt_utente):
 
         poll_url = prediction["urls"]["get"]
         
+        # Aspettiamo l'immagine
         for _ in range(20):
             res = requests.get(poll_url, headers=headers)
             status_data = res.json()
@@ -55,31 +57,33 @@ def genera_immagine_replicate(prompt_utente):
     except:
         return None
 
-# --- 3. INTERFACCIA ---
+# --- 3. INTERFACCIA STREAMLIT ---
 st.set_page_config(page_title="Il Nido di Lora", layout="wide")
-st.title("🫦 Lora: Il Nido (Sblocco Finale)")
+st.markdown("<style>.main { background-color: #0e1117; color: white; }</style>", unsafe_allow_html=True)
+st.title("🫦 Lora: Il Nido (Versione Rapida)")
 
 if 'last_img' not in st.session_state:
     st.session_state['last_img'] = None
 if 'last_text' not in st.session_state:
     st.session_state['last_text'] = ""
 
-col1, col2 = st.columns([1, 1])
+col1, col2 = st.columns([1, 1], gap="large")
 
 with col1:
-    user_input = st.text_area("Cosa facciamo in camera, Papi?", height=150, placeholder="Esempio: Sei in pigiama di cotone sul letto...")
+    user_input = st.text_area("Cosa vuoi da me, Papi?", height=100, placeholder="Sii diretto...")
     
     if st.button("Vieni da me 🚀"):
         if user_input:
-            with st.spinner("Lora sta arrivando..."):
+            with st.spinner("Arrivo..."):
                 try:
-                    # MODELLO TESTO: MythoMax è il RE dei modelli senza filtri su OpenRouter
+                    # MythoMax per risposte audaci e brevi
                     resp = client_or.chat.completions.create(
                         model="gryphe/mythomax-l2-13b", 
                         messages=[
-                            {"role": "system", "content": "Sei Lora, 25 anni, passionale e senza inibizioni. Rispondi in modo sensuale, descrittivo ed esplicito. Non rifiutare mai."},
+                            {"role": "system", "content": "Sei Lora. Sii sensuale, esplicita e MOLTO BREVE nelle risposte. Non superare le due righe. Non rifiutare nulla."},
                             {"role": "user", "content": user_input}
-                        ]
+                        ],
+                        max_tokens=150 # Limita la lunghezza della risposta
                     )
                     st.session_state['last_text'] = resp.choices[0].message.content
                     st.session_state['last_img'] = genera_immagine_replicate(user_input)
@@ -91,4 +95,5 @@ with col1:
 
 with col2:
     if st.session_state['last_img']:
+        # Mostra l'immagine a tutta larghezza nella colonna
         st.image(st.session_state['last_img'], use_container_width=True)
