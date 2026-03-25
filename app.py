@@ -38,15 +38,15 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Usa il modello Ostris (Flux-Dev) con il tuo LoRA di Civitai"""
-    # Il link diretto al tuo LoRA 'Smooth Realism'
+    """Versione con ID fisso per evitare l'errore 404"""
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Usiamo il modello stabile per evitare l'errore 'Invalid Version'
+    # Usiamo l'ID versione universale di ostris/flux-dev
+    # Se questo dà 404, significa che il tuo account Replicate non ha ancora accettato i termini di Flux
     output = replicate.run(
-        "ostris/flux-dev",
+        "ostris/flux-dev:a641daed366646876793f1d82f7c040d7a049d592a3b0488f725a332a673b063",
         input={
-            "prompt": f"RAW photo, {prompt_utente}, Lora 25yo mediterranean woman, black hair, highly detailed skin, 8k, cinematic lighting",
+            "prompt": f"RAW photo, {prompt_utente}, Lora 25yo mediterranean woman, black hair, 8k",
             "extra_loras": LORA_URL,
             "lora_scale": 0.85,
             "aspect_ratio": "9:16",
