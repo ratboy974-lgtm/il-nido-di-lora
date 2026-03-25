@@ -39,10 +39,10 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Versione corretta per lucataco/flux-dev-lora"""
+    """Versione definitiva per Lora libera e senza errori 422"""
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Chiamata al modello senza l'ID lungo per evitare il 422
+    # Puntiamo al modello di Lucataco che permette di ignorare i filtri
     output = replicate.run(
         "lucataco/flux-dev-lora",
         input={
@@ -53,11 +53,11 @@ def genera_immagine(prompt_utente):
             "guidance_scale": 3.5,
             "num_inference_steps": 28,
             "output_format": "jpg",
-            "disable_safety_checker": True # <--- Il nostro segreto per Lora libera
+            "disable_safety_checker": True  # <--- Questo è il tuo lasciapassare!
         }
     )
+    # Prendiamo il link dell'immagine
     return str(output[0]) if isinstance(output, list) else str(output)
-
 # --- 3. INTERFACCIA UTENTE ---
 st.set_page_config(page_title="Il Nido di Lora", page_icon="🫦", layout="wide")
 
