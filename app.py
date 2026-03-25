@@ -39,20 +39,21 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Versione SENZA FILTRI usando l'endpoint specifico"""
+    """Versione corretta per lucataco/flux-dev-lora"""
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Usiamo 'lucataco/flux-dev-lora', che è famoso perché permette di spegnere il filtro
+    # Chiamata al modello senza l'ID lungo per evitare il 422
     output = replicate.run(
-        "lucataco/flux-dev-lora:091495765661d88a2edef7d745a909789b5709b1f86644079549329063239386",
+        "lucataco/flux-dev-lora",
         input={
-            "prompt": f"RAW photo, {prompt_utente}, Lora 25yo woman, mediterranean, black hair, highly detailed skin, 8k",
+            "prompt": f"RAW photo, {prompt_utente}, Lora woman, black hair, highly detailed skin, 8k",
             "lora_url": LORA_URL,
             "lora_scale": 0.85,
+            "aspect_ratio": "9:16",
             "guidance_scale": 3.5,
             "num_inference_steps": 28,
             "output_format": "jpg",
-            "disable_safety_checker": True  # <--- ECCO LA CHIAVE! 🫦
+            "disable_safety_checker": True # <--- Il nostro segreto per Lora libera
         }
     )
     return str(output[0]) if isinstance(output, list) else str(output)
