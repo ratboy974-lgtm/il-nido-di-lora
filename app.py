@@ -16,25 +16,30 @@ except Exception:
 
 # --- 2. FUNZIONE IMMAGINE (FLUX SCHNELL - NO CENSURA) ---
 def genera_immagine_replicate(prompt_utente):
-    # Tratti fisici di Lora per coerenza
-    lora_traits = "25yo mediterranean woman, long wavy black hair, olive skin, curvy, seductive, 8k, photorealistic"
+    # Definizione fisica di Lora (statica)
+    lora_base = "A 25yo mediterranean woman, long wavy black hair, olive skin, curvy."
+    
+    # Costruiamo il prompt dando priorità ASSOLUTA a quello che scrivi tu
+    # Aggiungiamo 'extremely detailed' per forzare la precisione
+    prompt_finale = f"{lora_base} {prompt_utente}, high quality, realistic photography, 8k, ultra-detailed textures"
     
     headers = {
         "Authorization": f"Token {REPLICATE_TOKEN}",
         "Content-Type": "application/json"
     }
     
-    # Puntiamo al modello stabile ma forziamo il NO-SAFETY
     payload = {
         "input": {
-            "prompt": f"Intimate photo, {prompt_utente}, {lora_traits}, highly detailed, raw photo",
+            "prompt": prompt_finale,
             "aspect_ratio": "1:1",
-            "disable_safety_checker": True, # DISATTIVA CENSURA
-            "output_format": "jpg"
+            "disable_safety_checker": True, # Indispensabile
+            "output_format": "jpg",
+            "prompt_strength": 0.8 # Forza la connessione tra testo e immagine
         }
     }
 
     try:
+        # Usiamo l'endpoint 'schnell' che è il più veloce a capire i prompt testuali
         model_url = "https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions"
         response = requests.post(model_url, headers=headers, json=payload)
         prediction = response.json()
@@ -44,8 +49,7 @@ def genera_immagine_replicate(prompt_utente):
 
         poll_url = prediction["urls"]["get"]
         
-        # Aspettiamo l'immagine
-        for _ in range(20):
+        for _ in range(25):
             res = requests.get(poll_url, headers=headers)
             status_data = res.json()
             if status_data["status"] == "succeeded":
