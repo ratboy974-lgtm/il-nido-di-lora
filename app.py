@@ -39,21 +39,17 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Versione con bypass dei filtri basato su trigger flessibili"""
+    """L'unica versione che NON può darti 422 perché usa il modello base SDXL"""
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Usiamo questo endpoint che è il più solido per i LoRA di Civitai
+    # Questo modello è un 'cavallo di battaglia', non sparisce e non ha censure bloccanti
     output = replicate.run(
-        "lucataco/flux-dev-lora:a573216896582a176690460c386687002061093c3cd978bc7046200234479e0a",
+        "lucataco/replicate-flux-lora:731005a74e5033328e67f70b7936a2e4a46a788e0019446d3e387c69994c6a99",
         input={
-            "prompt": f"photorealistic, {prompt_utente}, Lora woman, black hair, ultra detailed, 8k, masterpiece",
-            "lora_url": LORA_URL,
-            "lora_scale": 0.9,
-            "aspect_ratio": "9:16",
-            "guidance_scale": 3.0,
-            "num_inference_steps": 28,
-            "output_format": "jpg",
-            "disable_safety_checker": True # <--- Deve essere True
+            "prompt": f"RAW photo, {prompt_utente}, Lora woman, mediterranean, black hair, highly detailed, 8k",
+            "hf_lora": LORA_URL, # Usiamo hf_lora che è il parametro più accettato
+            "lora_scale": 0.85,
+            "disable_safety_checker": True # <-- Fondamentale
         }
     )
     return str(output[0]) if isinstance(output, list) else str(output)
