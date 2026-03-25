@@ -38,13 +38,12 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Versione con ID fisso per evitare l'errore 404"""
+    """Versione con il modello ufficiale per evitare il 404"""
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Usiamo l'ID versione universale di ostris/flux-dev
-    # Se questo dà 404, significa che il tuo account Replicate non ha ancora accettato i termini di Flux
+    # Usiamo il modello ufficiale di Black Forest Labs
     output = replicate.run(
-        "ostris/flux-dev:a641daed366646876793f1d82f7c040d7a049d592a3b0488f725a332a673b063",
+        "black-forest-labs/flux-dev",
         input={
             "prompt": f"RAW photo, {prompt_utente}, Lora 25yo mediterranean woman, black hair, 8k",
             "extra_loras": LORA_URL,
