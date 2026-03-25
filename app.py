@@ -39,26 +39,23 @@ def genera_voce(testo):
     return base64.b64encode(data).decode()
 
 def genera_immagine(prompt_utente):
-    """Usa Flux-Dev su Replicate con il tuo LoRA di Civitai"""
+    """Versione SENZA FILTRI usando l'endpoint specifico"""
     LORA_URL = "https://civitai.com/api/download/models/2160078?type=Model&format=SafeTensor"
     
-    # Usiamo il modello ufficiale per stabilità
+    # Usiamo 'lucataco/flux-dev-lora', che è famoso perché permette di spegnere il filtro
     output = replicate.run(
-        "black-forest-labs/flux-dev",
+        "lucataco/flux-dev-lora:091495765661d88a2edef7d745a909789b5709b1f86644079549329063239386",
         input={
-            "prompt": f"RAW photo, {prompt_utente}, Lora 25yo mediterranean woman, black hair, highly detailed skin, 8k",
-            "extra_loras": LORA_URL,
+            "prompt": f"RAW photo, {prompt_utente}, Lora 25yo woman, mediterranean, black hair, highly detailed skin, 8k",
+            "lora_url": LORA_URL,
             "lora_scale": 0.85,
-            "aspect_ratio": "9:16",
             "guidance_scale": 3.5,
             "num_inference_steps": 28,
-            "output_format": "jpg"
+            "output_format": "jpg",
+            "disable_safety_checker": True  # <--- ECCO LA CHIAVE! 🫦
         }
     )
-    # Replicate restituisce una lista di URL, prendiamo il primo
-    if isinstance(output, list):
-        return str(output[0])
-    return str(output)
+    return str(output[0]) if isinstance(output, list) else str(output)
 
 # --- 3. INTERFACCIA UTENTE ---
 st.set_page_config(page_title="Il Nido di Lora", page_icon="🫦", layout="wide")
