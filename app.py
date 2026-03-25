@@ -24,20 +24,21 @@ client_gpt = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # --- 2. FUNZIONI ---
 
+import urllib.parse
+
 def genera_immagine(prompt_utente):
-    """Generazione UNFILTERED con Together AI"""
-    # Nota: Together applica i LoRA in modo diverso. Per ora usiamo il modello base 
-    # che è già potentissimo e non censurato. 
-    # Se vuoi proprio il LoRA di Civitai, Together richiede che venga caricato sul loro storage.
+    """Versione 100% Gratuita, Senza Filtri e Senza Chiavi (Pollinations)"""
+    # Creiamo un prompt potente che includa i tratti di Lora
+    prompt_completo = f"RAW photo, portrait of {prompt_utente}, Lora 25yo mediterranean woman, black hair, highly detailed skin, 8k, realistic, nsfw allowed"
     
-    response = client_together.images.generate(
-        model="black-forest-labs/FLUX.1-dev",
-        prompt=f"RAW photo, portrait of {prompt_utente}, Lora 25yo mediterranean woman, black hair, highly detailed skin, 8k, realistic",
-        steps=28,
-        n=1,
-        # Together non ha un 'safety checker' bloccante come Replicate
-    )
-    return response.data[0].url
+    # Codifichiamo il testo per l'URL
+    prompt_encoded = urllib.parse.quote(prompt_completo)
+    
+    # Usiamo il modello Flux di Pollinations (che è unfiltered di default)
+    # Aggiungiamo parametri per forzare la qualità
+    url_immagine = f"https://pollinations.ai/p/{prompt_encoded}?width=512&height=768&model=flux&nologo=true&seed={os.urandom(4).hex()}"
+    
+    return url_immagine
 
 def genera_voce(testo):
     output_filename = "voce_lora.mp3"
