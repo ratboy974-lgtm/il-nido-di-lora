@@ -64,6 +64,7 @@ def genera_immagine_replicate(prompt_utente):
     except Exception as e:
         st.error(f"Errore di rete: {e}")
         return None
+        
 # --- 3. INTERFACCIA STREAMLIT ---
 st.set_page_config(page_title="Il Nido di Lora", layout="wide")
 st.markdown("<style>.main { background-color: #0e1117; color: white; }</style>", unsafe_allow_html=True)
