@@ -15,38 +15,49 @@ except Exception:
     st.stop()
 
 # --- 2. FUNZIONE IMMAGINE (VIA API DIRETTA - NO ERRORI) ---
+# --- 2. FUNZIONE IMMAGINE (VERSIONE ROBUSTA) ---
 def genera_immagine_replicate(prompt_utente):
-    lora_traits = "25yo mediterranean woman, long wavy black hair, olive skin, curvy, nsfw, uncensored, explicit"
-    prompt_completo = f"High-end realistic photography, {prompt_utente}, {lora_traits}, 8k, photorealistic masterpiece"
+    lora_traits = "25yo mediterranean woman, long wavy black hair, olive skin, curvy, seductive, nsfw, uncensored"
+    prompt_completo = f"Candid realistic photography, {prompt_utente}, {lora_traits}, 8k, masterpiece"
     
     headers = {
         "Authorization": f"Token {REPLICATE_TOKEN}",
         "Content-Type": "application/json"
     }
     
-    # Modello Flux Schnell (Velocissimo)
+    # Modello FLUX SCHNELL - Il più veloce e meno problematico
     data = {
-        "version": "f71372edad11dc40062227f473c467a5b39912066c07df7422f98e6c789f36f8",
+        "version": "a00f0b6734e54361666995996c9918a03d86323bc07cf9f116694e8070387d51",
         "input": {"prompt": prompt_completo, "disable_safety_checker": True}
     }
 
     try:
-        # Creazione predizione
         res = requests.post("https://api.replicate.com/v1/predictions", headers=headers, json=data)
         prediction = res.json()
+        
+        # CONTROLLO ERRORI DETTAGLIATO
+        if "urls" not in prediction:
+            error_msg = prediction.get('detail', 'Errore sconosciuto')
+            st.error(f"Replicate dice: {error_msg}")
+            if "authentication" in error_msg.lower():
+                st.warning("Papi, controlla che la REPLICATE_API_TOKEN sia corretta!")
+            return None
+
         poll_url = prediction["urls"]["get"]
         
-        # Attendiamo che l'immagine sia pronta (max 10 sec)
-        for _ in range(10):
+        # Attendiamo il risultato (loop di 15 secondi)
+        for _ in range(15):
             res = requests.get(poll_url, headers=headers)
             status = res.json()
             if status["status"] == "succeeded":
                 return status["output"][0]
             if status["status"] == "failed":
+                st.error("La generazione è fallita sul server di Replicate.")
                 return None
             time.sleep(1)
+            
     except Exception as e:
-        st.error(f"Errore generazione: {e}")
+        st.error(f"Errore di connessione: {e}")
     return None
 
 # --- 3. INTERFACCIA ---
